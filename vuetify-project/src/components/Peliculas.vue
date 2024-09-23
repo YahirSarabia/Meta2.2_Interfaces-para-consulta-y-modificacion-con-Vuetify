@@ -1,8 +1,18 @@
 <template>
   <h1> {{ titulo }} </h1>
-    <v-table v-if="datos" height="600px" fixed-header>
+    <!-- Mensaje de error si los datos no se cargan -->
+    <v-alert
+      v-if="error"
+      type="error"
+      dismissible
+    >
+      Error al cargar los datos. Por favor, inténtalo de nuevo.
+    </v-alert>
+
+    <v-table v-if="datos && !error" height="600px" fixed-header>
       <thead>
         <tr>
+          <th class="text-left">Id</th>
           <th class="text-left">Título</th>
           <th class="text-left">Calificación</th>
           <th class="text-left">IMDB</th>
@@ -11,6 +21,7 @@
       </thead>
       <tbody>
         <tr v-for="movie,index in datos">
+          <td>{{ movie.id }}</td>
           <td @click="cambiarTitulo(movie.movie)">{{ movie.movie }}</td>
           <td>{{ movie.rating }}</td>
           <td><a :href="movie.imdb_url" target="_blank"> {{movie.imdb_url}} </a></td>
@@ -21,12 +32,24 @@
         </tr>
       </tbody>
     </v-table>
-    <p v-else>Cargando datos...</p>
+    <p v-else class="text-center">
+        <v-progress-circular
+          color="primary"
+          indeterminate
+        ></v-progress-circular>
+        Cargando datos...
+    </p>
 
   <div class="pa-4 text-center"> 
       <v-dialog v-model="dialogEditar" max-width="600">
         <v-card prepend-icon="mdi-pencil" title="Editar película">
           <v-container>
+            <v-text-field
+              label="Id"
+              v-model="datoEditar.id"
+              variant="underlined"
+            ></v-text-field>
+
             <v-text-field
               label="Título"
               v-model="datoEditar.movie"
@@ -70,10 +93,17 @@
     <v-dialog v-model="dialogBorrar" max-width="400" persistent>
       <v-card
         prepend-icon="mdi-delete"
-        text="Usted esta de acuerdo de borrar el renglon con la siguiente información:"
-        title="¿Desea borrar el renglón?"
+        text="Usted esta de acuerdo de borrar la pelicula con la siguiente información:"
+        title="¿Desea borrar la pelicula?"
       >
         <v-container>
+          <v-text-field
+            label="Id"
+            :model-value="datoBorrar.id"
+            variant="underlined"
+            readonly
+          ></v-text-field>
+
           <v-text-field
             label="Título"
             :model-value="datoBorrar.movie"
@@ -98,7 +128,7 @@
 
         <template v-slot:actions>
           <v-spacer></v-spacer>
-          <v-btn @click="btnNoBorrar">Desacuerdo</v-btn>
+          <v-btn @click="btnNoBorrar">No</v-btn>
           <v-btn color="red" @click="btnBorrar">Borrar</v-btn>
         </template>
       </v-card>
@@ -109,9 +139,21 @@
 <script setup>
     import { ref, onMounted} from 'vue';
     const datos = ref(null);
-    onMounted( async() => {
+    const error = ref(false); // Estado de error
+
+    onMounted(async () => {
+      const timeoutId = setTimeout(() => {
+        error.value = true; // Mostrar error si no se cargan los datos en 10 segundos
+      }, 10000);
+
+      try {
         const response = await fetch("https://dummyapi.online/api/movies");
+        if (!response.ok) throw new Error("Error al cargar los datos");
         datos.value = await response.json();
+        clearTimeout(timeoutId); // Limpiar el timeout si se cargan los datos correctamente
+      } catch (e) {
+        error.value = true; // Mostrar la alerta si ocurre un error
+      }
     });
 
     const titulo = ref('Titulo: ');

@@ -1,7 +1,8 @@
 <template>
-  <HelloWorld />
+  <Inicio />
 </template>
 
 <script setup>
-  //
+
+  //<HelloWorld />
 </script>
