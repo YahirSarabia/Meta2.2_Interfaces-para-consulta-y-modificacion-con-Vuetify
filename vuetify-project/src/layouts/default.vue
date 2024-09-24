@@ -3,7 +3,7 @@
     <v-layout>
       <v-app-bar prominent>
         <v-app-bar-nav-icon variant="text" @click="onDrawer"></v-app-bar-nav-icon>
-        <v-toolbar-title>vuetify</v-toolbar-title>
+        <v-toolbar-title>Meta 2.2</v-toolbar-title>
       </v-app-bar>
 
       <v-navigation-drawer v-model="drawer">
